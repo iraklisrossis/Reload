@@ -661,17 +661,6 @@ function handleHTTPGet(req, res)
 			res.write(deviceInfoListJSON);
 			res.end("");
 		}
-		//Editing page asks the server to open a project folder
-		else if (page.indexOf("openProjectFolder") != -1)
-		{
-			res.writeHead(302, {
-	  			'Location': '/UI/index.html'
-			});
-			res.end();
-			var pageSplit = page.split("?");
-			console.log("Openning project folder " + pageSplit[pageSplit.length - 1]);
-			openProjectFolder(pageSplit[pageSplit.length - 1]);
-		}
 		//Editing page asks the server for the version information
 		else if(page == "/getVersionInfo")
 		{
@@ -877,6 +866,17 @@ UICommands.getAddress = function(args, res)
 	  'Content-Type': '	text/html'
 	});
 	res.end(String(localAddress) + ":7000");
+}
+
+//Editing page asks the server to open a project folder
+UICommands.openProjectFolder = function(args, res)
+{
+	res.writeHead(302, {
+ 			'Location': '/UI/index.html'
+	});
+	res.end();
+	console.log("Openning project folder " + args.name);
+	openProjectFolder(args.name);
 }
 
 /**

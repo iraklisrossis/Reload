@@ -195,13 +195,9 @@
 			}
 
 			function openProjectFolder(projectName) {
-				$.ajax({
-					url : "http://localhost:8282/openProjectFolder?" + projectName,
-					context : document.body,
-					success : function(data) {
-						console.log("successfully openned the folder");
-					}
-				});
+				sendCommand({"command":"openProjectFolder", "name":projectName},function(data) {
+																					console.log("successfully openned the folder");
+																				});
 			}
 
 			function updatePorjectList(data) {
