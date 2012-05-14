@@ -22,6 +22,7 @@ var net = require('net');
 var fs = require('fs');
 var os = require('os');
 var path = require('path');
+var urlUtil = require('url');
 var http = require('http');
 var currentWorkingPath = process.cwd();
 
@@ -572,7 +573,9 @@ function handleHTTPGet(req, res)
 {
 	try
 	{
-		var page = unescape(req.url);
+		var url = urlUtil.parse(req.url,true);
+		var page = url.pathname;
+		//var page = unescape(req.url);
 		
 		// A device client requested an app bundle.
 		if (page.slice(page.length-14, page.length) == "LocalFiles.bin")
@@ -609,6 +612,10 @@ function handleHTTPGet(req, res)
 				res.end("");
 
 			});
+		}
+		else if(page == "/uicommand")
+		{
+			UICommands[url.query.command](url.query, res);
 		}
 		//Editing page is polling for adb debug logs
 		else if(page == "/getDebugData")
@@ -665,44 +672,6 @@ function handleHTTPGet(req, res)
 			console.log("Openning project folder " + pageSplit[pageSplit.length - 1]);
 			openProjectFolder(pageSplit[pageSplit.length - 1]);
 		}
-		//Editing page asks the server to change the workspace path
-		else if (page.indexOf("changeWorkspace") != -1)
-		{
-			res.writeHead(200, {
-			});
-			res.end();
-			var pageSplit = page.split("?");
-			var newWorkspacePath = pageSplit[pageSplit.length - 1];
-			console.log("Changing workspace to " + newWorkspacePath);
-			var path = require('path');
-			path.exists(newWorkspacePath, function(exists){
-				if(exists) {
-					setRootWorkspacePath(newWorkspacePath);
-					findProjects(function(){});
-				}
-				else
-				{
-					console.log("workspace does not exist");
-					fs.mkdirSync(newWorkspacePath);
-					setRootWorkspacePath(newWorkspacePath);
-					findProjects(function(){});
-				}
-			});
-		}
-		//Editing page asks the server for his local address
-		else if(page == "/getAddress")
-		{
-			if(localAddress == undefined)
-			{
-				localAddress = "127.0.0.1";
-			}
-			console.log("RequestURL:" + page);
-			res.writeHead(200, {
-			  'Content-Length': localAddress.length,
-			  'Content-Type': '	text/html'
-			});
-			res.end(String(localAddress) + ":7000");
-		}
 		//Editing page asks the server for the version information
 		else if(page == "/getVersionInfo")
 		{
@@ -727,17 +696,6 @@ function handleHTTPGet(req, res)
 			});
 			res.write(workspaceJSON);
 			res.end("");
-		}
-		//Editing page asks the server to create a new project
-		else if (page.indexOf("createProject") != -1)
-		{
-			res.writeHead(302, {
-	  			'Location': '/UI/index.html'
-			});
-			res.end();
-
-			var pageSplit = page.split("?");
-			createNewProject(pageSplit[1], pageSplit[2]);
 		}
 		//Editing page asks the server to reload a project
 		// TODO: Why using name "LocalFiles.html"? (Rather than "LocalFiles.bin"?)
@@ -870,6 +828,55 @@ function handleHTTPGet(req, res)
 	{
 		console.log("Error in handleHTTPGet: " + err);
 	}
+}
+
+var UICommands = {};
+
+UICommands.changeWorkspace = function(args, res)
+{
+	res.writeHead(200, {
+	});
+	res.end();
+	var newWorkspacePath = args.path;
+
+	console.log("Changing workspace to " + newWorkspacePath);
+	path.exists(newWorkspacePath, function(exists){
+		if(exists) {
+			setRootWorkspacePath(newWorkspacePath);
+			findProjects(function(){});
+		}
+		else
+		{
+			console.log("workspace does not exist");
+			fs.mkdirSync(newWorkspacePath);
+			setRootWorkspacePath(newWorkspacePath);
+			findProjects(function(){});
+		}
+	});
+};
+
+//Editing page asks the server to create a new project
+UICommands.createProject = function(args, res)
+{
+	res.writeHead(302, {
+			'Location': '/UI/index.html'
+	});
+	res.end();
+	createNewProject(args.name, args.type);
+};
+
+//Editing page asks the server for his local address
+UICommands.getAddress = function(args, res)
+{
+	if(localAddress == undefined)
+	{
+		localAddress = "127.0.0.1";
+	}
+	res.writeHead(200, {
+	  'Content-Length': localAddress.length,
+	  'Content-Type': '	text/html'
+	});
+	res.end(String(localAddress) + ":7000");
 }
 
 /**

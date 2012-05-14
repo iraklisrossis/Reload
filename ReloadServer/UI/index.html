@@ -119,6 +119,16 @@
 					}
 				});
 			})
+			
+			function sendCommand(command, success)
+			{
+				$.ajax({
+						url:"/uicommand",
+						cache:false,
+						data:command,
+						success: success
+						});
+			}
 
 			function getVersionInfo() {
 				$.getJSON("http://localhost:8282/getVersionInfo", function(data) {
@@ -130,25 +140,17 @@
 			}
 
 			function changeWorkspace(workspacePath) {
-				$.ajax({
-					url : "http://localhost:8282/changeWorkspace?" + workspacePath,
-					context : document.body,
-					success : function() {
-						getProjectList();
-						getWorkspacePath();
-					}
-				});
+				sendCommand({"command":"changeWorkspace","path":workspacePath},	function() {
+																					getProjectList();
+																					getWorkspacePath();
+																				});
 			}
 
 			function createNewProject(projectName, projectType) {
-				$.ajax({
-					url : "http://localhost:8282/createProject?" + projectName + "?" + projectType,
-					context : document.body,
-					success : function() {
-						console.log("successfully created new project");
-						getProjectList();
-					}
-				});
+				sendCommand({"command":"createProject", "name":projectName, "type":projectType},function() {
+																									console.log("successfully created new project");
+																									getProjectList();
+																								});
 			}
 
 			function getWorkspacePath() {
@@ -161,22 +163,18 @@
 			}
 			
 			function getServerAddress() {
-				$.ajax({
-					url : "http://localhost:8282/getAddress",
-					context : document.body,
-					success : function(data) {
-						var addressDiv = document.getElementById("ServerAddress");
-						if((data.indexOf("127.0.0.1") <0) &&(data.indexOf("error") < 0))
-						{
-							addressDiv.innerHTML = "Server Address:  " + String(data);
-							document.title = "MoSync Reload  " + String(data);
-						}
-						else
-						{
-							addressDiv.innerHTML = "Could not find the server address, <br> Please read it fro myour operating system.";
-						}
-					}
-				});
+				sendCommand({"command":"getAddress"},function(data) {
+														var addressDiv = document.getElementById("ServerAddress");
+														if((data.indexOf("127.0.0.1") <0) &&(data.indexOf("error") < 0))
+														{
+															addressDiv.innerHTML = "Server Address:  " + String(data);
+															document.title = "MoSync Reload  " + String(data);
+														}
+														else
+														{
+															addressDiv.innerHTML = "Could not find the server address, <br> Please read it fro myour operating system.";
+														}
+													});
 			}
 
 			function reloadProject(projectURL, projectName) {
