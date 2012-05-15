@@ -615,76 +615,14 @@ function handleHTTPGet(req, res)
 		}
 		else if(page == "/uicommand")
 		{
-			UICommands[url.query.command](url.query, res);
-		}
-		//Editing page is polling for adb debug logs
-		else if(page == "/getDebugData")
-		{
-			var data = getDebugData();
-			res.writeHead(200, {
-			  'Content-Length': data.length,
-			  'Content-Type': 'text/JSON'
-			});
-			res.end(data);
-		}
-		//Editing page is polling for remote log messages.
-		else if (page == "/getRemoteLogData")
-		{
-			var data = getRemoteLogData();
-			res.writeHead(200, {
-			  'Content-Length': data.length,
-			  'Content-Type': 'text/JSON'
-			});
-			res.end(data);
-		}
-		//Editing page polls for the project list
-		else if(page == "/getProjects.JSON")
-		{
-			findProjects(function(projects){
-				var html = generateProjectListJSON(projects);
-				res.writeHead(200, {
-				  'Content-Length': html.length,
-				  'Content-Type': '	text/html'
-				});
-				res.write(html);
-				res.end("");
-			});
-
-		}
-		//Editing page polls for mobile devices info
-		else if(page == "/getClientsInfo.JSON")
-		{
-			res.writeHead(200, {
-			  'Content-Length': deviceInfoListJSON.length,
-			  'Content-Type': '	text/html'
-			});
-			res.write(deviceInfoListJSON);
-			res.end("");
-		}
-		//Editing page asks the server for the version information
-		else if(page == "/getVersionInfo")
-		{
-			var versionInfo = fs.readFileSync("build.dat", "ascii").split("\n");
-
-			var versionInfoJSON = JSON.stringify({"version":versionInfo[0], "timestamp": versionInfo[1]});
-			console.log(versionInfoJSON)
-			res.writeHead(200, {
-			  'Content-Length': versionInfoJSON.length,
-			  'Content-Type': '	text/html'
-			});
-			res.write(versionInfoJSON);
-			res.end("");
-		}
-		//Editing page asks the server for the workspace path
-		else if(page == "/getWorkSpacePath")
-		{
-			var workspaceJSON = JSON.stringify({"path":rootWorkspacePath})
-			res.writeHead(200, {
-			  'Content-Length': workspaceJSON.length,
-			  'Content-Type': '	text/html'
-			});
-			res.write(workspaceJSON);
-			res.end("");
+			if(UICommands[url.query.command] != undefined)
+			{
+				UICommands[url.query.command](url.query, res);
+			}
+			else
+			{
+				console.log("Server received unknown UI message: " + url.query.command);
+			}
 		}
 		//Editing page asks the server to reload a project
 		// TODO: Why using name "LocalFiles.html"? (Rather than "LocalFiles.bin"?)
@@ -861,11 +799,13 @@ UICommands.getAddress = function(args, res)
 	{
 		localAddress = "127.0.0.1";
 	}
+	var addressJSON = JSON.stringify({"address":localAddress + ":7000"});
 	res.writeHead(200, {
-	  'Content-Length': localAddress.length,
+	  'Content-Length': addressJSON.length,
 	  'Content-Type': '	text/html'
 	});
-	res.end(String(localAddress) + ":7000");
+	res.write(addressJSON);
+	res.end();
 }
 
 //Editing page asks the server to open a project folder
@@ -877,6 +817,80 @@ UICommands.openProjectFolder = function(args, res)
 	res.end();
 	console.log("Openning project folder " + args.name);
 	openProjectFolder(args.name);
+}
+
+//Editing page asks the server for the workspace path
+UICommands.getWorkSpacePath = function(args, res)
+{
+	var workspaceJSON = JSON.stringify({"path":rootWorkspacePath})
+	res.writeHead(200, {
+	  'Content-Length': workspaceJSON.length,
+	  'Content-Type': '	text/html'
+	});
+	res.write(workspaceJSON);
+	res.end("");
+}
+
+//Editing page asks the server for the version information
+UICommands.getVersionInfo = function(args, res)
+{
+	var versionInfo = fs.readFileSync("build.dat", "ascii").split("\n");
+
+	var versionInfoJSON = JSON.stringify({"version":versionInfo[0], "timestamp": versionInfo[1]});
+	console.log(versionInfoJSON)
+	res.writeHead(200, {
+	  'Content-Length': versionInfoJSON.length,
+	  'Content-Type': '	text/html'
+	});
+	res.write(versionInfoJSON);
+	res.end("");
+}
+
+//Editing page polls for the project list
+UICommands.getProjects = function(args, res)
+{
+	findProjects(function(projects){
+		var html = generateProjectListJSON(projects);
+		res.writeHead(200, {
+		  'Content-Length': html.length,
+		  'Content-Type': '	text/html'
+		});
+		res.write(html);
+		res.end("");
+	});
+}
+
+//Editing page is polling for adb debug logs
+UICommands.getDebugData = function(args, res)
+{
+	var data = getDebugData();
+	res.writeHead(200, {
+	  'Content-Length': data.length,
+	  'Content-Type': 'text/JSON'
+	});
+	res.end(data);
+}
+
+//Editing page polls for mobile devices info
+UICommands.getClientsInfo = function(args, res)
+{
+	res.writeHead(200, {
+	  'Content-Length': deviceInfoListJSON.length,
+	  'Content-Type': '	text/html'
+	});
+	res.write(deviceInfoListJSON);
+	res.end("");
+}
+
+//Editing page is polling for remote log messages.
+UICommands.getRemoteLogData = function(args, res)
+{
+	var data = getRemoteLogData();
+	res.writeHead(200, {
+	  'Content-Length': data.length,
+	  'Content-Type': 'text/JSON'
+	});
+	res.end(data);
 }
 
 /**

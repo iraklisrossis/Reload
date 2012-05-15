@@ -126,17 +126,17 @@
 						url:"/uicommand",
 						cache:false,
 						data:command,
-						success: success
+						success: function(data) {success(JSON.parse(data))}
 						});
 			}
 
 			function getVersionInfo() {
-				$.getJSON("http://localhost:8282/getVersionInfo", function(data) {
-						var versionLabel = document.getElementById("reloadVersion");
-						versionLabel.innerHTML = data.version;
-						var timestampLabel = document.getElementById("reloadTimeStamp");
-						timestampLabel.innerHTML = data.timestamp;
-				});
+				sendCommand({"command":"getVersionInfo"}, function(data) {
+															var versionLabel = document.getElementById("reloadVersion");
+															versionLabel.innerHTML = data.version;
+															var timestampLabel = document.getElementById("reloadTimeStamp");
+															timestampLabel.innerHTML = data.timestamp;
+														});
 			}
 
 			function changeWorkspace(workspacePath) {
@@ -155,20 +155,20 @@
 
 			function getWorkspacePath() {
 				console.log("getting workspace path");
-				$.getJSON("http://localhost:8282/getWorkSpacePath", function(data) {
-						console.log("Worspacepath : " + data.path);
-						var workspacePathDiv = document.getElementById("workspacePath");
-						workspacePathDiv.value = data.path;
-				});
+				sendCommand({"command":"getWorkSpacePath"},function(data) {
+															console.log("Worspacepath : " + data.path);
+															var workspacePathDiv = document.getElementById("workspacePath");
+															workspacePathDiv.value = data.path;
+														});
 			}
 			
 			function getServerAddress() {
 				sendCommand({"command":"getAddress"},function(data) {
 														var addressDiv = document.getElementById("ServerAddress");
-														if((data.indexOf("127.0.0.1") <0) &&(data.indexOf("error") < 0))
+														if((data.address.indexOf("127.0.0.1") <0) &&(data.address.indexOf("error") < 0))
 														{
-															addressDiv.innerHTML = "Server Address:  " + String(data);
-															document.title = "MoSync Reload  " + String(data);
+															addressDiv.innerHTML = "Server Address:  " + String(data.address);
+															document.title = "MoSync Reload  " + String(data.address);
 														}
 														else
 														{
@@ -251,16 +251,16 @@
 			}
 
 			function getProjectList() {
-				$.getJSON("http://localhost:8282/getProjects.JSON", function(data) {
-					if(isProjectListupdated(data)) {
-						updatePorjectList(data);
-					}
-				});
+				sendCommand({"command":"getProjects"}, function(data) {
+															if(isProjectListupdated(data)) {
+																updatePorjectList(data);
+															}
+														});
 			}
 
 			function getClientsInfo()
 			{
-				$.getJSON("http://localhost:8282/getClientsInfo.JSON", function(data) {
+				sendCommand({"command":"getClientsInfo"}, function(data) {
 					var clientList = document.getElementById("clientList");
 					clientList.innerHTML = "";
 					if(data)
@@ -283,7 +283,7 @@
 			}
 
 			function getDebugData() {
-				$.getJSON("http://localhost:8282/getDebugData", function(debugdata) {
+				sendCommand({"command":"getDebugData"}, function(debugdata) {
 					var contentDiv = document.getElementById("JSContentDiv");
 					if(debugdata) {
 						for(var i=0; i <= debugdata.length; i++) {
@@ -317,8 +317,7 @@
 
 			function getRemoteLogData()
 			{
-				$.getJSON("http://localhost:8282/getRemoteLogData", function(logdata)
-				{
+				sendCommand({"command":"getRemoteLogData"}, function(logdata){
 					var contentDiv = document.getElementById("RemoteContentDiv");
 					if (logdata)
 					{
