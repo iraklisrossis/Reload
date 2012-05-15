@@ -574,7 +574,7 @@ function handleHTTPGet(req, res)
 	try
 	{
 		var url = urlUtil.parse(req.url,true);
-		var page = url.pathname;
+		var page = unescape(url.pathname);
 		//var page = unescape(req.url);
 		
 		// A device client requested an app bundle.
@@ -623,43 +623,6 @@ function handleHTTPGet(req, res)
 			{
 				console.log("Server received unknown UI message: " + url.query.command);
 			}
-		}
-		//Editing page asks the server to reload a project
-		// TODO: Why using name "LocalFiles.html"? (Rather than "LocalFiles.bin"?)
-		else if (page.slice(page.length-15, page.length) == "LocalFiles.html")
-		{
-			console.log("Reloading project");
-			res.writeHead(200, { 'CACHE-CONTROL': 'no-cache'});
-			res.end();
-
-			//send the new bundle URL to the device clients
-			clientList.forEach(function(client)
-			{
-				var url = page.replace("LocalFiles.html", "LocalFiles.bin").replace(' ', '%20');
-				console.log("url: " + url);
-				try
-				{
-					// TODO: We need to send length of url.
-					// First length as hex 8 didgits, e.g.: "000000F0"
-					// Then string data follows.
-					// Update client to read this format.
-					// Or should we use "number:stringdata", e.g.: "5:Hello" ??
-					// Advantage with hex is that we can read fixed numer of bytes
-					// in the read operation.
-					// Convert to hex:
-					// http://stackoverflow.com/questions/57803/how-to-convert-decimal-to-hex-in-javascript
-					var result = client.write(url, "ascii");
-				}
-				catch(err)
-				{
-					console.log("could not send data because : " + err)
-					var index = clientList.indexOf(client);
-					if(index != -1)
-					{
-						clientList.splice(index, 1);
-					}
-				}
-			});
 		}
 		// Remote log request.
 		// TODO: Add check for specific index,
@@ -891,6 +854,43 @@ UICommands.getRemoteLogData = function(args, res)
 	  'Content-Type': 'text/JSON'
 	});
 	res.end(data);
+}
+
+//Editing page asks the server to reload a project
+UICommands.reloadProject = function(args, res)
+{
+	console.log("Reloading project");
+	res.writeHead(200, { 'CACHE-CONTROL': 'no-cache'});
+	res.end();
+
+	var url = ("/" + args.name + "/LocalFiles.bin").replace(' ', '%20');
+	console.log("url: " + url);
+	//send the new bundle URL to the device clients
+	clientList.forEach(function(client)
+	{
+		try
+		{
+			// TODO: We need to send length of url.
+			// First length as hex 8 didgits, e.g.: "000000F0"
+			// Then string data follows.
+			// Update client to read this format.
+			// Or should we use "number:stringdata", e.g.: "5:Hello" ??
+			// Advantage with hex is that we can read fixed numer of bytes
+			// in the read operation.
+			// Convert to hex:
+			// http://stackoverflow.com/questions/57803/how-to-convert-decimal-to-hex-in-javascript
+			var result = client.write(url, "ascii");
+		}
+		catch(err)
+		{
+			console.log("could not send data because : " + err)
+			var index = clientList.indexOf(client);
+			if(index != -1)
+			{
+				clientList.splice(index, 1);
+			}
+		}
+	});
 }
 
 /**

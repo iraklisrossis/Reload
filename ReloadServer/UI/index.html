@@ -179,12 +179,8 @@
 
 			function reloadProject(projectURL, projectName) {
 				console.log(projectName);
-				$.ajax({
-					url : projectURL,
-					context : document.body,
-					success : function(data) {
-					}
-				});
+				sendCommand({"command":"reloadProject", "name" : projectName})
+				
 				if(previousProjectID != null) {
 					var projectLink = document.getElementById(previousProjectID);
 					projectLink.style.color = "#FFFFFF";
