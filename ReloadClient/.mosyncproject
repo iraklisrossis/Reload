@@ -3,8 +3,9 @@
 <build.cfg id="Debug" types="Debug"/>
 <build.cfg id="Release" types="Release"/>
 <criteria>
+<filter mgr="0" profiles="" require="0" type="com.mobilesorcery.mosync.filters.profile" vendors="Android,BlackBerry,Windows Phone,iOS"/>
 <filter type="com.mobilesorcery.sdk.capabilities.devices.elementfactory">
-<capabilities optional="" required="HTML5"/>
+<capabilities optional="" required="NativeUI"/>
 </filter>
 </criteria>
 <properties>
@@ -16,8 +17,9 @@
 <property key="build.prefs:additional.library.paths/Debug" value=""/>
 <property key="build.prefs:additional.library.paths/Release" value=""/>
 <property key="build.prefs:app.permissions" value="Accelerometer Bluetooth Calendar Camera Compass Contacts File\ Storage Gyroscope Internet\ Access Location Location/Coarse Location/Fine Orientation Power\ Management Proximity Push\ Notifications SMS Vibration"/>
-<property key="build.prefs:app.vendor/Release" value="MoSync SDK"/>
+<property key="build.prefs:app.vendor/Release" value="MoSyncSDK"/>
 <property key="build.prefs:app.version/Release" value="1.0.4"/>
+<property key="build.prefs:ext/Release" value=""/>
 <property key="build.prefs:extra.link.sw/Debug" value="-master-dump"/>
 <property key="build.prefs:extra.link.sw/Release" value=""/>
 <property key="build.prefs:extra.res.sw/Debug" value=""/>
@@ -30,7 +32,7 @@
 <property key="build.prefs:memory.heap/Release" value="7000"/>
 <property key="build.prefs:memory.stack/Debug" value="1024"/>
 <property key="build.prefs:memory.stack/Release" value="512"/>
-<property key="build.prefs:project.type" value=""/>
+<property key="build.prefs:project.type" value="app"/>
 <property key="com.mobilesorcery.sdk.html5.support" value="true"/>
 <property key="dependency.strategy" value="0"/>
 <property key="excludes/Debug" value=""/>
